@@ -1,0 +1,8 @@
+{  
+    "timezone":"America/Los_Angeles", 
+    "times":[
+        {"id":1,"day":5,"start":"14:22","end":"14:23","zone":1},
+        {"id":2,"day":5,"start":"14:23","end":"14:24","zone":2},
+        {"id":3,"day":5,"start":"14:24","end":"14:25","zone":3}
+    ]
+}

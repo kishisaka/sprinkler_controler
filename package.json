@@ -1,0 +1,15 @@
+{
+  "name": "xdk-iot-onboard-led-blink",
+  "description": "",
+  "version": "0.0.0",
+  "main": "main.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "license": "BSD-3-Clause",
+  "private": true,
+  "dependencies": {
+      "node-clock":"~0.1.1",
+      "node-calendar":"~0.1.4"
+  }
+}
