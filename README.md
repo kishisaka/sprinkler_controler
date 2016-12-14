@@ -8,7 +8,7 @@ App Overview
 ------------
 This is an automatic sprkinler controller that runs on an Intel® Edison. The sprinkler controller will 
 automatically turns on and off the sprinkler system at times specified in the sprinker_times.json file. 
-The controller will also go to weatherunderground.com to check the weather condition prior to running 
+The controller will also use Weather Underground to check the weather condition prior to running 
 a sprinkler. If the weather condition contains the word "rain" the sprinker will not run at that time. 
 The weather condition is updated every 30 minutes. 
 
