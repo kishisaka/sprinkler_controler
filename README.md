@@ -14,7 +14,7 @@ to check the weather prior to running a sprinkler. The sprinker_times.json file 
 {  
     "weatherundergroundAPIKey":"<your weather api key>",
     "zipcode":"<your zipcode>",
-    "timezone":"<your zipcode>", 
+    "timezone":"<your timezone>", 
     "times":[
         {"id":1,"day":5,"start":"14:22","end":"14:23","zone":1},
         .
