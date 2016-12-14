@@ -6,9 +6,13 @@ Docs for XDK: https://software.intel.com/en-us/xdk/docs.
 
 App Overview
 ------------
-An automatic sprkinler system controller. Automatically turns on and off the sprinkler system at
-times specified in the sprinker_times.json file. The controller will also go to weatherunderground.com 
-to check the weather prior to running a sprinkler. The sprinker_times.json file is shown below:
+This is an automatic sprkinler controller that runs on an Intel® Edison. The sprinkler controller will 
+automatically turns on and off the sprinkler system at times specified in the sprinker_times.json file. 
+The controller will also go to weatherunderground.com to check the weather condition prior to running 
+a sprinkler. If the weather condition contains the word "rain" the sprinker will not run at that time. 
+The weather condition is updated every 30 minutes. 
+
+The sprinker_times.json file is shown below:
 
 ```
 {  
@@ -29,7 +33,8 @@ each pin to a relay and have the relay switch a 24v power supply to the irrigati
 sprinker controller times, your zipcode and weather underground api key. Timezone is required to get
 clock information for your area (clock on the edison retursn time in UTC). 
 
-This project is based on the Intel® LED controller project. 
+This project is based on the Intel® LED controller project and was inspired by Pete B's Arduino 
+Irrigation controller: (https://www.youtube.com/watch?v=l4GPRTsuHkI). 
 
 Important App Files
 --------------------------
