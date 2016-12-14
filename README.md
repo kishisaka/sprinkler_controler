@@ -47,6 +47,7 @@ Important App Files
 --------------------------
 * main.js
 * package.json
+* sprinker_times.json
 
 
 Important Project Files
