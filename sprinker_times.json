@@ -1,4 +1,6 @@
 {  
+    "weatherundergroundAPIKey":"<your key>",
+    "zipcode":"95534",
     "timezone":"America/Los_Angeles", 
     "times":[
         {"id":1,"day":5,"start":"14:22","end":"14:23","zone":1},
