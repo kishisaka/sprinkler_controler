@@ -10,6 +10,7 @@ An automatic sprkinler system controller. Automatically turns on and off the spr
 times specified in the sprinker_times.json file. The controller will also go to weatherunderground.com 
 to check the weather prior to running a sprinkler. The sprinker_times.json file is shown below:
 
+```
 {  
     "weatherundergroundAPIKey":"<your weather api key>",
     "zipcode":"<your zipcode>",
@@ -21,6 +22,7 @@ to check the weather prior to running a sprinkler. The sprinker_times.json file 
         .
     ]
 }
+```
 
 The system supports up to 8 zones (1-8). Each zone is controlled by a GPIO pin (from 5-12). Hook up 
 each pin to a relay and have the relay switch a 24v power supply to the irrigation valve. Enter your
