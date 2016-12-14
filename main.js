@@ -21,6 +21,7 @@
 var express = require('express');
 var clock = require('node-clock');
 var calendar = require('node-calendar');
+var http = require('http');
 var fs = require('fs');
 
 var app = express();
@@ -42,23 +43,39 @@ var i = 0;
 var data = fs.readFileSync("/node_app_slot/sprinker_times.json");
 var sprinklerData = JSON.parse(data);
 var timezone = sprinklerData.timezone;
+var zipcode = sprinklerData.zipcode;
+var weatherundergroundAPIKey = sprinklerData.weatherundergroundAPIKey;
+var weatherCondition = -1;
 
 // poor man's clear console
 console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n") ;   
 
+//get current weather condition
+
 // dump current time
 console.log("Initializing " + APP_NAME) ;
+
+//get weather info every 30 minutes; 
+getWeatherInfo();
+getWeatherAtInterval(1000*60*30);
+
+console.log("zipcode: " + zipcode);
+console.log("timezone: " + timezone);
 console.log(clock.tz(Date.now(),"%Y/%m/%d %H:%M", timezone));
-console.log("day: " + parseInt(clock.tz(Date.now(), "%d", timezone), 10));
-var currentDay = calendar.weekday(parseInt(clock.tz(Date.now(), "%Y", timezone),10), parseInt(clock.tz(Date.now(), "%m", timezone),10), parseInt(clock.tz(Date.now(), "%d", timezone),10));
-console.log("currentDay: " + currentDay);
+console.log("  day: " + parseInt(clock.tz(Date.now(), "%d", timezone), 10));
+var currentDay = calendar.weekday(parseInt(clock.tz(Date.now(), "%Y", timezone),10), 
+                                  parseInt(clock.tz(Date.now(), "%m", timezone),10), 
+                                  parseInt(clock.tz(Date.now(), "%d", timezone),10));
+console.log("  day of week: " + currentDay);
 
 // prints some interesting platform details to console
 cfg10.identify();                
 
-//dump the sprinkler timing data. 
+//dump the sprinkler on/off time data. 
 for(i = 0; i < sprinklerData.times.length; i ++) {
-    console.log("id: " + sprinklerData.times[i].id + "|" + "day: " + sprinklerData.times[i].day + "|" + "start: " + sprinklerData.times[i].start + "|" + "end: " + sprinklerData.times[i].end + "|" + "zone: " + sprinklerData.times[i].zone);
+    console.log("id: " + sprinklerData.times[i].id + "|" + "day: " + 
+                sprinklerData.times[i].day + "|" + "start: " + sprinklerData.times[i].start + "|" + "end: " + 
+                sprinklerData.times[i].end + "|" + "zone: " + sprinklerData.times[i].zone);
 }
 
 // test and initialize the sprinkler GPIO pins. 
@@ -80,10 +97,16 @@ var checkTime = function() {
     
     // make timezone configurable
     var currentTime = clock.tz(Date.now(), "%H:%M", timezone).valueOf();
-    var currentDay = calendar.weekday(parseInt(clock.tz(Date.now(), "%Y", timezone), 10), parseInt(clock.tz(Date.now(), "%m", timezone), 10), parseInt(clock.tz(Date.now(), "%d", timezone),10));
+    clock.tz(Date.now(), "%H:%M", timezone).valueOf();
+    var currentDay = calendar.weekday(parseInt(clock.tz(Date.now(), "%Y", timezone), 10), 
+                                      parseInt(clock.tz(Date.now(), "%m", timezone), 10), 
+                                      parseInt(clock.tz(Date.now(), "%d", timezone),10));
                 
     for(i = 0; i < sprinklerData.times.length; i ++) {
-        if (sprinklerData.times[i].start.valueOf() == currentTime.toString() && currentDay.toString() == sprinklerData.times[i].day.valueOf()) {           
+        if (sprinklerData.times[i].start.valueOf() == currentTime.toString()
+            && currentDay.toString() == sprinklerData.times[i].day.valueOf() 
+            && weatherCondition > -1) {
+            
             if (sprinklerData.times[i].zone.valueOf() == "1") {
                 cfg5.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
@@ -117,7 +140,9 @@ var checkTime = function() {
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
         }
-        if (sprinklerData.times[i].end.valueOf() == currentTime.toString() && currentDay.toString() == sprinklerData.times[i].day.valueOf()) {                
+        if (sprinklerData.times[i].end.valueOf() == currentTime.toString() 
+            && currentDay.toString() == sprinklerData.times[i].day.valueOf()) { 
+            
             if (sprinklerData.times[i].zone.valueOf() == "1") {
                 cfg5.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
@@ -210,7 +235,9 @@ function addSprinklerTime(req, res) {
     
     //dump the sprinkler timing data
     for(i = 0; i < sprinklerData.times.length; i ++) {
-        console.log("id: " + sprinklerData.times[i].id + "|" + "day: " + sprinklerData.times[i].day + "|" + "start: " + sprinklerData.times[i].start + "|" + "end: " + sprinklerData.times[i].end + "|" + "zone: " + sprinklerData.times[i].day);
+        console.log("id: " + sprinklerData.times[i].id + "|" + "day: " +
+                    sprinklerData.times[i].day + "|" + "start: " + sprinklerData.times[i].start + "|" +
+                    "end: " + sprinklerData.times[i].end + "|" + "zone: " + sprinklerData.times[i].day);
     }
     
     // update File
@@ -303,6 +330,45 @@ function turnOffAll() {
     cfg10.io.write(1);
     cfg11.io.write(1);
     cfg12.io.write(1); 
+}
+
+/**
+  get weather info from weather underground, use the key: <weatherundergroundAPIKey for app name: "smart sprinkler,
+  example: "http://api.wunderground.com/api/<weatherundergroundAPIKey>/conditions/q/CA/San_Francisco.json"
+*/
+function getWeatherInfo() {
+    var options = {
+        host: 'api.wunderground.com',
+        port: '80',
+        path: "/api/"+weatherundergroundAPIKey+"/conditions/q/CA/"+zipcode+".json"  
+    };
+    
+    var callback = function(response){
+        // Continuously update stream with data
+        var body = '';
+        response.on('data', function(data) {
+            body += data;
+        });
+
+        response.on('end', function() {
+            // Data received completely.
+            var weather = JSON.parse(body);
+            weatherCondition = (weather.current_observation.weather).toLowerCase().indexOf("rain");
+            console.log("current weather is: " + weather.current_observation.weather + ":" + weatherCondition);
+       });
+    }
+    var req = http.request(options, callback);
+    req.end();  
+}
+
+/**
+  update weather condition at some interval 
+*/
+function getWeatherAtInterval(interval) {
+    console.log("getting weather every " + interval + " ms.");
+    setInterval(function(){
+        getWeatherInfo();
+    }, interval);
 }
 
 /**
