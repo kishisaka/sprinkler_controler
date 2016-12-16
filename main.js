@@ -14,6 +14,17 @@
  
  API to add new times, remove existing times and show sprinkler schedule from web calls is below. 
  
+ GPIO to Relay Module in mapping:
+ 
+ GPIO 12 -> RelayModule 1
+ GPIO 11 -> RelayModule 5
+ GPIO 10 -> RelayModule 4
+ GPIO 9 -> RelayModule 2
+ GPIO 8 -> RelayModule 3
+ GPIO 7 -> RelayModule 8
+ GPIO 6 -> RelayModule 6
+ GPIO 5 -> RelayModule 7
+
  */
 
 "use strict" ;
@@ -71,7 +82,7 @@ console.log("  day of week: " + currentDay);
 // prints some interesting platform details to console
 cfg10.identify();                
 
-//dump the sprinkler on/off time data. 
+//dump the sprinkler on/off time data.
 for(i = 0; i < sprinklerData.times.length; i ++) {
     console.log("id: " + sprinklerData.times[i].id + "|" + "day: " + 
                 sprinklerData.times[i].day + "|" + "start: " + sprinklerData.times[i].start + "|" + "end: " + 
@@ -95,35 +106,36 @@ flash(300);
 // run this check every 5 second, we are checking to see if we need to turn any of our sprinklers on or off
 var checkTime = function() {
     
-    // make timezone configurable
+    // make timezone configurable   
     var currentTime = clock.tz(Date.now(), "%H:%M", timezone).valueOf();
+    console.log(currentTime + " | weather condition: " + weatherCondition)
     clock.tz(Date.now(), "%H:%M", timezone).valueOf();
     var currentDay = calendar.weekday(parseInt(clock.tz(Date.now(), "%Y", timezone), 10), 
                                       parseInt(clock.tz(Date.now(), "%m", timezone), 10), 
-                                      parseInt(clock.tz(Date.now(), "%d", timezone),10));
+                                      parseInt(clock.tz(Date.now(), "%d", timezone), 10));
                 
     for(i = 0; i < sprinklerData.times.length; i ++) {
         if (sprinklerData.times[i].start.valueOf() == currentTime.toString()
             && currentDay.toString() == sprinklerData.times[i].day.valueOf() 
-            && weatherCondition > -1) {
+            && weatherCondition < 0) {
             
-            if (sprinklerData.times[i].zone.valueOf() == "1") {
+            if (sprinklerData.times[i].zone.valueOf() == "5") {
                 cfg5.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "2") {
+            else if (sprinklerData.times[i].zone.valueOf() == "8") {
                 cfg6.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "3") {
+            else if (sprinklerData.times[i].zone.valueOf() == "4") {
                 cfg7.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "4") {
+            else if (sprinklerData.times[i].zone.valueOf() == "2") {
                 cfg8.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "5") {
+            else if (sprinklerData.times[i].zone.valueOf() == "3") {
                 cfg9.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
@@ -135,7 +147,7 @@ var checkTime = function() {
                 cfg11.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
-             else if (sprinklerData.times[i].zone.valueOf() == "8") {
+             else if (sprinklerData.times[i].zone.valueOf() == "1") {
                 cfg12.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
@@ -143,23 +155,23 @@ var checkTime = function() {
         if (sprinklerData.times[i].end.valueOf() == currentTime.toString() 
             && currentDay.toString() == sprinklerData.times[i].day.valueOf()) { 
             
-            if (sprinklerData.times[i].zone.valueOf() == "1") {
+            if (sprinklerData.times[i].zone.valueOf() == "5") {
                 cfg5.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "2") {
+            else if (sprinklerData.times[i].zone.valueOf() == "8") {
                 cfg6.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "3") {
+            else if (sprinklerData.times[i].zone.valueOf() == "4") {
                 cfg7.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "4") {
+            else if (sprinklerData.times[i].zone.valueOf() == "2") {
                 cfg8.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
             } 
-            else if (sprinklerData.times[i].zone.valueOf() == "5") {
+            else if (sprinklerData.times[i].zone.valueOf() == "3") {
                 cfg9.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
             } 
@@ -171,7 +183,7 @@ var checkTime = function() {
                 cfg11.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
             } 
-             else if (sprinklerData.times[i].zone.valueOf() == "8") {
+             else if (sprinklerData.times[i].zone.valueOf() == "1") {
                 cfg12.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
             } 
