@@ -61,13 +61,13 @@ var weatherCondition = -1;
 // poor man's clear console
 console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n") ;   
 
-//get current weather condition
-
 // dump current time
 console.log("Initializing " + APP_NAME) ;
 
-//get weather info every 30 minutes; 
+//get current weather condition
 getWeatherInfo();
+
+//get weather info every 30 minutes; 
 getWeatherAtInterval(1000*60*30);
 
 console.log("zipcode: " + zipcode);
@@ -103,22 +103,23 @@ gpioInit(cfg13, 13);
 //start flashing the built in LED on pin 13 (this tells user that we are running)
 flash(300);
 
-// run this check every 5 second, we are checking to see if we need to turn any of our sprinklers on or off
+// run this check every 15 second, we are checking to see if we need to turn any of our sprinklers on or off
 var checkTime = function() {
     
     // make timezone configurable   
     var currentTime = clock.tz(Date.now(), "%H:%M", timezone).valueOf();
-    console.log(currentTime + " | weather condition: " + weatherCondition)
     clock.tz(Date.now(), "%H:%M", timezone).valueOf();
     var currentDay = calendar.weekday(parseInt(clock.tz(Date.now(), "%Y", timezone), 10), 
                                       parseInt(clock.tz(Date.now(), "%m", timezone), 10), 
                                       parseInt(clock.tz(Date.now(), "%d", timezone), 10));
                 
     for(i = 0; i < sprinklerData.times.length; i ++) {
-        if (sprinklerData.times[i].start.valueOf() == currentTime.toString()
-            && currentDay.toString() == sprinklerData.times[i].day.valueOf() 
-            && weatherCondition < 0) {
-            
+        var isTime = isTimeToSprinkle(sprinklerData.times[i].start.valueOf(), sprinklerData.times[i].end.valueOf());
+        
+        console.log(sprinklerData.times[i].id.valueOf() + " | " + isTime + " | currentTime: " + currentTime + " | startTime:" 
+                    + sprinklerData.times[i].start.valueOf() + " | endTime:" + sprinklerData.times[i].end.valueOf());
+        
+        if ( (isTime == true) && (currentDay.toString() == sprinklerData.times[i].day.valueOf()) && (weatherCondition < 0) ) {            
             if (sprinklerData.times[i].zone.valueOf() == "5") {
                 cfg5.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
@@ -151,10 +152,7 @@ var checkTime = function() {
                 cfg12.io.write(0);
                 console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
             } 
-        }
-        if (sprinklerData.times[i].end.valueOf() == currentTime.toString() 
-            && currentDay.toString() == sprinklerData.times[i].day.valueOf()) { 
-            
+        } else {             
             if (sprinklerData.times[i].zone.valueOf() == "5") {
                 cfg5.io.write(1);
                 console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
@@ -190,7 +188,7 @@ var checkTime = function() {
         }
     }    
 };
-var sprinklerInterval = setInterval(checkTime, 5000);
+var sprinklerInterval = setInterval(checkTime, 15000);
 
 // show schedule in memory
 app.get('/listItems', function (req, res) {
@@ -395,4 +393,22 @@ function flash(interval) {
             cfg13.io.write(0);
         }
     }, interval);
+}
+
+/**
+  determines if it is time to run some sprinkler, takes in start time and end time (both 
+  are strings with hh:mm format) and compares these with the current time, returns true 
+  if it is time to run sprinkler, else fals if need to turn off. 
+*/
+function isTimeToSprinkle(start, end) {
+    var currentTime = (clock.tz(Date.now(), "%H:%M", timezone).valueOf()).split(":");
+    var startTime = start.split(":");
+    var endTime = end.split(":");
+    var currentMs = calendar.timegm([1970, 1, 1, currentTime[0], currentTime[1], 0]);
+    var startMs = calendar.timegm([1970, 1, 1, startTime[0], startTime[1], 0]);
+    var endMs = calendar.timegm([1970, 1, 1, endTime[0], endTime[1], 0]);
+    if (currentMs >= startMs && currentMs <= endMs) {
+        return true;
+    }
+    return false;
 }
