@@ -30,10 +30,10 @@ The sprinker_times.json file is shown below:
 A small rest API is inclued to add, remove, update and list the current;y set sprinkler times. The 
 changes will be persisted to the sprinkler_tims.json file. The API is shown below: 
 ```
-http://<board ip>:<port>/listItems
-http://<board ip>:<port>/addItem/<day: 0-6>-<start time: 00:00>-<end time: 23:59>-<zone: 1-8>
-http://<board ip>:<port>/removeItem/<id: 0>
-http://<board ip>:<port>/updateItem/<id: 0>-<day: 0-6>-<start time: 00:00>-<end time: 23:59>-<zone: 1-8>
+http://<board ip>:<port>/listitems
+http://<board ip>:<port>/additem/<day: 0-6>/<start time: 00:00>/<end time: 23:59>/<zone: 1-8>
+http://<board ip>:<port>/removeitem/<id: 0>
+http://<board ip>:<port>/updateitem/<id: 0>/<day: 0-6>/<start time: 00:00>/<end time: 23:59>/<zone: 1-8>
 ```
 The system supports up to 8 zones (1-8). Each zone is controlled by a GPIO pin (from 5-12). Hook up 
 each pin to a relay and have the relay switch a 24v power supply to the irrigation valve. Enter your
