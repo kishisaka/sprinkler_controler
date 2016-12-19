@@ -24,6 +24,8 @@
  GPIO 7 -> RelayModule 8
  GPIO 6 -> RelayModule 6
  GPIO 5 -> RelayModule 7
+ 
+ TOOD: reqire eveything so the relay channles match the GPIO pins match the zone numbers (in ascending order!!!!) 
 
  */
 
@@ -103,7 +105,7 @@ gpioInit(cfg13, 13);
 //start flashing the built in LED on pin 13 (this tells user that we are running)
 flash(300);
 
-// run this check every 15 second, we are checking to see if we need to turn any of our sprinklers on or off
+// run this check every 1 second, we are checking to see if we need to turn any of our sprinklers on or off
 var checkTime = function() {
     
     // make timezone configurable   
@@ -188,29 +190,29 @@ var checkTime = function() {
         }
     }    
 };
-var sprinklerInterval = setInterval(checkTime, 15000);
+var sprinklerInterval = setInterval(checkTime, 1000);
 
 // show schedule in memory
-app.get('/listItems', function (req, res) {
+app.get('/listitems', function (req, res) {
     res.send(JSON.stringify(sprinklerData));
 })
 
 // show persistent schedule (sprinker_times.json)
-app.get('/listFileItems', function (req, res) {
+app.get('/listfileitems', function (req, res) {
    fs.readFile("/node_app_slot/sprinker_times.json", function(err, data) {
        res.end(data);
    });
 })
 
-app.get('/addItem/:day-:start-:end-:zone', function (req, res) {
+app.get('/additem/:day/:start/:end/:zone', function (req, res) {
     addSprinklerTime(req, res);
 })
 
-app.get('/removeItem/:id', function(req, res) {
+app.get('/removeitem/:id', function(req, res) {
     removeSprinkerTime(req.params.id, res);
 });
 
-app.get('/updateItem/:id-:day-:start-:end-:zone', function(req, res) {
+app.get('/updateitem/:id/:day/:start/:end/:zone', function(req, res) {
     updateSprinkerTime(req.params.id, req.params.day, req.params.start, req.params.end, req.params.zone, res);
 })
 
@@ -239,7 +241,7 @@ function addSprinklerTime(req, res) {
     console.log(JSON.stringify(req.params));
     
     //add the new sprinkler time, increment our id (i)
-    req.params.id = i + 1;
+    req.params.id = Date.now();
     console.log(sprinklerData.times);
     sprinklerData.times.push(req.params);
     
@@ -404,10 +406,10 @@ function isTimeToSprinkle(start, end) {
     var currentTime = (clock.tz(Date.now(), "%H:%M", timezone).valueOf()).split(":");
     var startTime = start.split(":");
     var endTime = end.split(":");
-    var currentMs = calendar.timegm([1970, 1, 1, currentTime[0], currentTime[1], 0]);
+    var currentMs = calendar.timegm([1970, 1, 1, currentTime[0], currentTime[1], new Date().getSeconds()]);
     var startMs = calendar.timegm([1970, 1, 1, startTime[0], startTime[1], 0]);
     var endMs = calendar.timegm([1970, 1, 1, endTime[0], endTime[1], 0]);
-    if (currentMs >= startMs && currentMs <= endMs) {
+    if (currentMs > startMs && currentMs < endMs) {
         return true;
     }
     return false;
