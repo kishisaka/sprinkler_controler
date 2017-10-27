@@ -7,8 +7,9 @@
         .
     ]}
     
- An interval checker runs every 5 seconds, gets the curent time and compares if any of the spinkler events [times] start and stop times match, if so
- the app will start or stop the sprinkler. 
+ An interval checker runs every 1 second, and checks if the current time is between 
+ any of the spinkler events [times] start and stop times, if so the app will start the sprinkler, if not 
+ it will stop the sprinkler. 
  
  Start and end times must be specified in 24hr time. 
  
@@ -25,7 +26,7 @@
  GPIO 6 -> RelayModule 6
  GPIO 5 -> RelayModule 7
  
- TOOD: reqire eveything so the relay channles match the GPIO pins match the zone numbers (in ascending order!!!!) 
+ TOOD: rewire the board so the relay channels match the GPIO pins match the zone numbers 
 
  */
 
@@ -59,6 +60,9 @@ var timezone = sprinklerData.timezone;
 var zipcode = sprinklerData.zipcode;
 var weatherundergroundAPIKey = sprinklerData.weatherundergroundAPIKey;
 var weatherCondition = -1;
+var weatherConditionDescription = "";
+var weatherTemp = "";
+var weatherTempLastUpdatedOn ="";
 
 // poor man's clear console
 console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n") ;   
@@ -67,10 +71,10 @@ console.log("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n") ;
 console.log("Initializing " + APP_NAME) ;
 
 //get current weather condition
-getWeatherInfo();
+// getWeatherInfo();
 
-//get weather info every 30 minutes; 
-getWeatherAtInterval(1000*60*30);
+//get weather info every 60 minutes; 
+// getWeatherAtInterval(1000*60*60);
 
 console.log("zipcode: " + zipcode);
 console.log("timezone: " + timezone);
@@ -118,79 +122,65 @@ var checkTime = function() {
     for(i = 0; i < sprinklerData.times.length; i ++) {
         var isTime = isTimeToSprinkle(sprinklerData.times[i].start.valueOf(), sprinklerData.times[i].end.valueOf());
         
-        console.log(sprinklerData.times[i].id.valueOf() + " | " + isTime + " | currentTime: " + currentTime + " | startTime:" 
+        if ( (isTime == true) && (currentDay.toString() == sprinklerData.times[i].day.valueOf()) && (weatherCondition < 0) ) { 
+            console.log(sprinklerData.times[i].id.valueOf() + " | " + isTime + " | zone: " + sprinklerData.times[i].zone.valueOf() + " | currentTime: " + currentTime + " | startTime:" 
                     + sprinklerData.times[i].start.valueOf() + " | endTime:" + sprinklerData.times[i].end.valueOf());
-        
-        if ( (isTime == true) && (currentDay.toString() == sprinklerData.times[i].day.valueOf()) && (weatherCondition < 0) ) {            
             if (sprinklerData.times[i].zone.valueOf() == "5") {
-                cfg5.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg5);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "8") {
-                cfg6.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg6);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "4") {
-                cfg7.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg7);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "2") {
-                cfg8.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg8);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "3") {
-                cfg9.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg9);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "6") {
-                cfg10.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg10);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "7") {
-                cfg11.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg11);
             } 
              else if (sprinklerData.times[i].zone.valueOf() == "1") {
-                cfg12.io.write(0);
-                console.log(currentTime.toString() + " turning on zone: " + sprinklerData.times[i].zone);
+                turnOn(cfg12);
             } 
-        } else {             
+        } else if (currentDay.toString() == sprinklerData.times[i].day.valueOf()){
+             console.log(sprinklerData.times[i].id.valueOf() + " | " + isTime + " | zone: " + sprinklerData.times[i].zone.valueOf() + " | currentTime: " + currentTime + " | startTime:" 
+                    + sprinklerData.times[i].start.valueOf() + " | endTime:" + sprinklerData.times[i].end.valueOf());
             if (sprinklerData.times[i].zone.valueOf() == "5") {
-                cfg5.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg5);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "8") {
-                cfg6.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg6);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "4") {
-                cfg7.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg7);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "2") {
-                cfg8.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg8);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "3") {
-                cfg9.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg9);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "6") {
-                cfg10.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg10);
             } 
             else if (sprinklerData.times[i].zone.valueOf() == "7") {
-                cfg11.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg11);
             } 
              else if (sprinklerData.times[i].zone.valueOf() == "1") {
-                cfg12.io.write(1);
-                console.log(currentTime.toString() + " turning off zone: " + sprinklerData.times[i].zone); 
+                turnOff(cfg12);
             } 
         }
-    }    
+    } 
+    console.log("-------------------------------------------------");
 };
-var sprinklerInterval = setInterval(checkTime, 1000);
+var sprinklerInterval = setInterval(checkTime, 5000);
 
 // show schedule in memory
 app.get('/listitems', function (req, res) {
@@ -214,7 +204,16 @@ app.get('/removeitem/:id', function(req, res) {
 
 app.get('/updateitem/:id/:day/:start/:end/:zone', function(req, res) {
     updateSprinkerTime(req.params.id, req.params.day, req.params.start, req.params.end, req.params.zone, res);
-})
+});
+
+app.get('/currenttime', function(req, res) {
+    var currentTime = {"time":clock.tz(Date.now(), "%H:%M", timezone).valueOf(),
+                  "weather_condition":weatherConditionDescription,
+                  "weather_temp":weatherTemp,
+                  "zipcode":zipcode,
+                  "weather_updated_on":0 };
+    res.send(currentTime);
+});
 
 // setup our webserver to start listening
 var server = app.listen(8081, function () {
@@ -254,6 +253,9 @@ function addSprinklerTime(req, res) {
     
     // update File
     fs.writeFileSync("/node_app_slot/sprinker_times.json", JSON.stringify(sprinklerData));
+    
+    //shut down all sprkinlers 
+    turnOffAll();
     
     //dump schedule to user
     res.send(JSON.stringify(sprinklerData));
@@ -330,6 +332,24 @@ function gpioInit(cfg, pin) {
     cfg.io.write(1);
 }
 
+function turnOn(cfg) {
+    if (cfg.io.read() != 0) {
+        console.log("turnOn(), turning on"); 
+        cfg.io.write(0);
+    } else {
+        console.log("turnOn() already turned on"); 
+    }
+}
+
+function turnOff(cfg) {
+    if (cfg.io.read() != 1) {
+        console.log("turnOff() turning off"); 
+        cfg.io.write(1);
+    } else {
+        console.log("turnOff() already turned off"); 
+    }
+}
+
 /**
   Turn off all sprinklers now! 
 */
@@ -356,18 +376,25 @@ function getWeatherInfo() {
     };
     
     var callback = function(response){
-        // Continuously update stream with data
-        var body = '';
-        response.on('data', function(data) {
-            body += data;
-        });
+        try{
+            // Continuously update stream with data
+            var body = '';
+            response.on('data', function(data) {
+                body += data;
+            });
 
-        response.on('end', function() {
-            // Data received completely.
-            var weather = JSON.parse(body);
-            weatherCondition = (weather.current_observation.weather).toLowerCase().indexOf("rain");
-            console.log("current weather is: " + weather.current_observation.weather + ":" + weatherCondition);
-       });
+            response.on('end', function() {
+                // Data received completely.
+                var weather = JSON.parse(body);
+                weatherConditionDescription = weather.current_observation.weather;
+                weatherTemp = weather.current_observation.temperature_string;
+                weatherCondition = (weather.current_observation.weather).toLowerCase().indexOf("rain");
+                weatherTempLastUpdatedOn = Date.now();
+                console.log("current weather is: " + weather.current_observation.weather + ":" + weatherCondition);
+           });
+        } catch(err) {
+            console.log(err);
+        }
     }
     var req = http.request(options, callback);
     req.end();  
@@ -399,8 +426,11 @@ function flash(interval) {
 
 /**
   determines if it is time to run some sprinkler, takes in start time and end time (both 
-  are strings with hh:mm format) and compares these with the current time, returns true 
-  if it is time to run sprinkler, else fals if need to turn off. 
+  are strings with hh:mm format) and checks if these are between the current time, returns true 
+  if so (it is time to run sprinkler), else false if not (need to turn off). 
+  
+  note that we only care about 24 hour time so we normalize eveything to start of epoch
+  (jan 1st 1970 and use the current seconds) 
 */
 function isTimeToSprinkle(start, end) {
     var currentTime = (clock.tz(Date.now(), "%H:%M", timezone).valueOf()).split(":");
